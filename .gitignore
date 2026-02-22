@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data and large files
+data/
+downloads/
+*.zip
+*.tar
+*.gz
+
+# Training outputs
+outputs/
+checkpoints/
+logs/
+plots/
+results/
+*.pth
+*.log
+*.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Virtual Environment
+venv/
+env/
+.env
+.ipynb_checkpoints/
