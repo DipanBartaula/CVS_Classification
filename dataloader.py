@@ -119,7 +119,11 @@ def create_dataloaders(
     train_sampler = None
     train_shuffle = True
     
-    if use_weighted_sampler and len(train_dataset) > 0:
+    if len(train_dataset) == 0:
+        logger.error("❌ Training dataset is empty. Cannot create DataLoaders.")
+        return None, None, None
+
+    if use_weighted_sampler:
         sample_weights = _compute_sample_weights(train_dataset)
         train_sampler = WeightedRandomSampler(
             weights=sample_weights,
@@ -138,7 +142,7 @@ def create_dataloaders(
         num_workers=num_workers,
         pin_memory=pin_memory,
         collate_fn=collate_fn,
-        drop_last=True,
+        drop_last=len(train_dataset) > batch_size,  # Only drop last if enough samples
         persistent_workers=num_workers > 0,
     )
     

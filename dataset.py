@@ -247,9 +247,21 @@ class EndoscapesCVSDataset(Dataset):
         """Load video IDs for the current split."""
         if os.path.exists(self.split_file):
             with open(self.split_file, "r") as f:
-                ids = [line.strip() for line in f if line.strip()]
-            logger.info(f"Loaded {len(ids)} video IDs from {self.split_file}")
-            return ids
+                raw_ids = [line.strip() for line in f if line.strip()]
+            
+            # Normalize IDs: handle float strings like '1.0' -> '1' and strip
+            normalized_ids = []
+            for rid in raw_ids:
+                try:
+                    # If it's a numeric string that looks like 1.0, convert to 1
+                    if "." in rid:
+                        rid = str(int(float(rid)))
+                except (ValueError, TypeError):
+                    pass
+                normalized_ids.append(rid.strip())
+            
+            logger.info(f"Loaded {len(normalized_ids)} video IDs from {self.split_file}")
+            return normalized_ids
         else:
             # Auto-generate splits if split files don't exist
             logger.warning(

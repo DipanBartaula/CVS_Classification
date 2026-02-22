@@ -331,10 +331,11 @@ def train(args):
         num_workers=args.num_workers,
     )
 
-    if len(train_loader.dataset) == 0:
+    if train_loader is None or len(train_loader.dataset) == 0:
         logger.error("❌ Training dataset is empty. Please check your data_root, splits, and metadata.")
+        logger.error("   Ensure the video IDs in splits/*.txt match the 'vid' column in your metadata CSV.")
         return
-    if len(val_loader.dataset) == 0:
+    if val_loader is None or len(val_loader.dataset) == 0:
         logger.warning("⚠️  Validation dataset is empty. Validation steps will be skipped.")
 
     # Get class weights for imbalanced data
