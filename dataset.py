@@ -228,12 +228,18 @@ class EndoscapesCVSDataset(Dataset):
                 f"Available columns: {list(df.columns)}"
             )
         
+        # Clean IDs: Convert to string, handle potential float '1.0' -> '1', and strip
+        for col in ["video_id", "frame_id"]:
+            # If it's float, convert to int first to remove .0
+            if pd.api.types.is_float_dtype(df[col]):
+                df[col] = df[col].fillna(0).astype(int)
+            df[col] = df[col].astype(str).str.strip()
+        
         # Binarize CVS labels: threshold at 0.5 (handles decimal consensus values)
         for col in ["C1", "C2", "C3"]:
+            # Ensure numeric
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
             df[col] = (df[col] >= 0.5).astype(int)
-        
-        # Convert video_id to string for consistent matching
-        df["video_id"] = df["video_id"].astype(str)
         
         return df
     
@@ -467,6 +473,11 @@ class EndoscapesCVSDataset(Dataset):
     def get_class_distribution(self) -> Dict[str, Dict[str, int]]:
         """Get class distribution for each CVS criterion."""
         distribution = {}
+        if len(self.samples) == 0:
+            for name in config.CVS_CRITERIA_NAMES:
+                distribution[name] = {"positive": 0, "negative": 0, "total": 0, "pos_ratio": 0.0}
+            return distribution
+
         all_labels = np.array([s["labels"] for s in self.samples])
         
         for i, name in enumerate(config.CVS_CRITERIA_NAMES):
@@ -486,6 +497,9 @@ class EndoscapesCVSDataset(Dataset):
         Compute class weights for imbalanced data using inverse frequency.
         Returns tensor of shape (3,) with weight for positive class per criterion.
         """
+        if len(self.samples) == 0:
+            return torch.ones(config.NUM_CLASSES)
+
         all_labels = np.array([s["labels"] for s in self.samples])
         weights = []
         

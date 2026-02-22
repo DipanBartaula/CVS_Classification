@@ -331,6 +331,12 @@ def train(args):
         num_workers=args.num_workers,
     )
 
+    if len(train_loader.dataset) == 0:
+        logger.error("❌ Training dataset is empty. Please check your data_root, splits, and metadata.")
+        return
+    if len(val_loader.dataset) == 0:
+        logger.warning("⚠️  Validation dataset is empty. Validation steps will be skipped.")
+
     # Get class weights for imbalanced data
     pos_weight = train_loader.dataset.get_class_weights().to(config.DEVICE)
     logger.info(f"Positive class weights: {pos_weight.tolist()}")
