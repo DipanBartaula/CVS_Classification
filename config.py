@@ -64,7 +64,7 @@ BATCH_SIZE = 4
 NUM_WORKERS = 2 if IN_COLAB else 4
 
 # Iteration-based training
-MAX_ITERS = 4000              # Total training iterations
+MAX_ITERS = 8000              # Total training iterations
 CHECKPOINT_INTERVAL = 1000    # Save checkpoint every N iterations
 VAL_INTERVAL = 1000           # Validate every N iterations
 LOG_INTERVAL = 50             # Log training metrics every N iterations

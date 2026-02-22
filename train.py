@@ -125,7 +125,7 @@ def ensure_dataset_available(data_root: str) -> str:
 # ─────────────────────────────────────────────
 #  Iteration-based training defaults
 # ─────────────────────────────────────────────
-DEFAULT_MAX_ITERS = 4000
+DEFAULT_MAX_ITERS = 8000
 DEFAULT_CHECKPOINT_INTERVAL = 1000
 DEFAULT_VAL_INTERVAL = 1000      # Validate every N iterations
 DEFAULT_LOG_INTERVAL = 50        # Log metrics every N iterations
@@ -144,7 +144,7 @@ def parse_args():
 
     # Iteration-based training
     parser.add_argument("--max_iters", type=int, default=DEFAULT_MAX_ITERS,
-                        help="Total number of training iterations (default: 4000)")
+                        help="Total number of training iterations (default: 8000)")
     parser.add_argument("--checkpoint_interval", type=int, default=DEFAULT_CHECKPOINT_INTERVAL,
                         help="Save checkpoint every N iterations (default: 1000)")
     parser.add_argument("--val_interval", type=int, default=DEFAULT_VAL_INTERVAL,
