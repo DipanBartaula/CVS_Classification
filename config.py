@@ -65,8 +65,8 @@ NUM_WORKERS = 2 if IN_COLAB else 4
 
 # Iteration-based training
 MAX_ITERS = 4000              # Total training iterations
-CHECKPOINT_INTERVAL = 250     # Save checkpoint every N iterations
-VAL_INTERVAL = 250            # Validate every N iterations
+CHECKPOINT_INTERVAL = 1000    # Save checkpoint every N iterations
+VAL_INTERVAL = 1000           # Validate every N iterations
 LOG_INTERVAL = 50             # Log training metrics every N iterations
 WARMUP_ITERS = 500            # LR warmup iterations
 
@@ -91,7 +91,7 @@ SCHEDULER = "cosine"      # Options: cosine, step, plateau
 # ─────────────────────────────────────────────
 #  Evaluation
 # ─────────────────────────────────────────────
-EVAL_INTERVAL = 250           # Evaluate every N iterations (same as VAL_INTERVAL)
+EVAL_INTERVAL = 1000          # Evaluate every N iterations (same as VAL_INTERVAL)
 CLASSIFICATION_THRESHOLD = 0.5  # Threshold for binary predictions
 
 # ─────────────────────────────────────────────
