@@ -156,6 +156,8 @@ def parse_args():
 
     parser.add_argument("--lr", type=float, default=config.LEARNING_RATE)
     parser.add_argument("--weight_decay", type=float, default=config.WEIGHT_DECAY)
+    parser.add_argument("--val_subset_size", type=int, default=250,
+                        help="Number of random samples to use for periodic validation steps (0 for full set)")
     parser.add_argument("--num_workers", type=int, default=config.NUM_WORKERS)
     parser.add_argument("--freeze_backbone", action="store_true",
                         help="Freeze the VideoMAE backbone")
@@ -228,6 +230,7 @@ def validate(
     current_iter: int,
     max_iters: int,
     pos_weight: Optional[torch.Tensor] = None,
+    subset_size: Optional[int] = None,
 ) -> Tuple[float, float, Dict]:
     """
     Validate the model.
@@ -240,13 +243,34 @@ def validate(
     loss_meter = AverageMeter("val_loss")
     acc_meter = AverageMeter("val_accuracy")
 
+    # If subset_size is specified, evaluate only on a random subset
+    dataset = val_loader.dataset
+    if subset_size is not None and 0 < subset_size < len(dataset):
+        # Deterministic seed for validation subset per iteration for consistency
+        g = torch.Generator()
+        g.manual_seed(config.SEED + current_iter)
+        indices = torch.randperm(len(dataset), generator=g)[:subset_size].tolist()
+        
+        subset_dataset = torch.utils.data.Subset(dataset, indices)
+        eval_loader = torch.utils.data.DataLoader( # Changed from DataLoader to torch.utils.data.DataLoader
+            subset_dataset,
+            batch_size=val_loader.batch_size,
+            num_workers=val_loader.num_workers,
+            pin_memory=val_loader.pin_memory,
+            collate_fn=val_loader.collate_fn,
+            shuffle=False,
+        )
+        # Fix: the subset needs the same layout info if it uses it (though evaluate doesn't)
+    else:
+        eval_loader = val_loader
+
     all_labels = []
     all_probs = []
     all_preds = []
 
     pbar = tqdm(
-        val_loader,
-        desc=f"Iter {current_iter}/{max_iters} [Val]",
+        eval_loader,
+        desc=f"Iter {current_iter}/{max_iters} [Val Sub]" if subset_size else f"Iter {current_iter}/{max_iters} [Val]",
         leave=True,
         dynamic_ncols=True,
     )
@@ -512,6 +536,7 @@ def train(args):
                 current_iter=current_iter,
                 max_iters=args.max_iters,
                 pos_weight=pos_weight,
+                subset_size=args.val_subset_size,
             )
 
             per_criterion_auroc = val_metrics.get("per_criterion_auroc", {})

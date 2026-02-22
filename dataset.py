@@ -406,10 +406,12 @@ class EndoscapesCVSDataset(Dataset):
         Uses temporal stride (frame_sample_rate) and handles boundary padding
         by clamping to valid frame indices.
         """
-        # Causal sampling: last frame of the clip is the keyframe
-        # Look behind by (num_frames - 1) * stride
-        start = keyframe_idx - (self.num_frames - 1) * self.frame_sample_rate
-        # end = keyframe_idx  # Implicitly the last sampled frame
+        clip_len = self.num_frames * self.frame_sample_rate
+        half_clip = clip_len // 2
+        
+        # Center the clip around the keyframe
+        start = keyframe_idx - half_clip
+        # end = keyframe_idx + half_clip
         
         indices = []
         for i in range(self.num_frames):
