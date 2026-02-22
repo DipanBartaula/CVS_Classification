@@ -196,11 +196,20 @@ class EndoscapesCVSDataset(Dataset):
         # Normalize column names (handle various naming conventions)
         col_map = {}
         for col in df.columns:
-            lower = col.lower().strip()
-            if "video" in lower and "id" in lower:
+            lower = col.strip().lower()
+            # Video ID mapping
+            if lower in ("vid", "video_id", "videoid", "video"):
                 col_map[col] = "video_id"
+            elif "video" in lower and "id" in lower:
+                col_map[col] = "video_id"
+            
+            # Frame ID mapping
+            elif lower in ("frame", "frame_id", "frameid", "frame_num"):
+                col_map[col] = "frame_id"
             elif "frame" in lower and ("id" in lower or "num" in lower or "number" in lower):
                 col_map[col] = "frame_id"
+            
+            # Criteria mapping
             elif lower in ("c1", "criterion_1", "two_structures"):
                 col_map[col] = "C1"
             elif lower in ("c2", "criterion_2", "hepatocystic_triangle"):
