@@ -94,7 +94,8 @@ class CVSInferenceEngine:
             Dict with probabilities, predictions, and CVS status.
         """
         if keyframe_idx is None:
-            keyframe_idx = len(frame_paths) // 2
+            # Default to the end of the video
+            keyframe_idx = len(frame_paths) - 1
         
         # Sample frames
         indices = self._sample_indices(len(frame_paths), keyframe_idx)
@@ -171,16 +172,15 @@ class CVSInferenceEngine:
         Sliding window inference over a long video.
         Aggregates predictions across all windows.
         """
-        clip_length = config.NUM_FRAMES * config.FRAME_SAMPLE_RATE
         total_frames = len(frame_paths)
-        
         all_probs = []
         window_results = []
         
-        # Generate window centers
-        centers = list(range(clip_length // 2, total_frames - clip_length // 2, stride))
+        # Generate window endpoints (causal: we predict for the current frame using history)
+        lookbehind = (config.NUM_FRAMES - 1) * config.FRAME_SAMPLE_RATE
+        centers = list(range(lookbehind, total_frames, stride))
         if not centers:
-            centers = [total_frames // 2]
+            centers = [total_frames - 1]
         
         for center in tqdm(centers, desc="Sliding window", leave=False):
             result = self.predict_single_clip(frame_paths, keyframe_idx=center)
@@ -214,10 +214,9 @@ class CVSInferenceEngine:
         return aggregated
     
     def _sample_indices(self, total_frames: int, keyframe_idx: int) -> List[int]:
-        """Sample frame indices for a clip centered around keyframe."""
-        clip_len = config.NUM_FRAMES * config.FRAME_SAMPLE_RATE
-        half_clip = clip_len // 2
-        start = keyframe_idx - half_clip
+        """Sample frame indices for a clip ending at keyframe (causal)."""
+        # Look behind by (num_frames - 1) * stride
+        start = keyframe_idx - (config.NUM_FRAMES - 1) * config.FRAME_SAMPLE_RATE
         
         indices = []
         for i in range(config.NUM_FRAMES):
