@@ -19,7 +19,6 @@ import argparse
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.cuda.amp import GradScaler, autocast
 from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
 from typing import Dict, List, Optional, Tuple
@@ -363,7 +362,7 @@ def train(args):
 
     # AMP scaler
     use_amp = not args.no_amp and config.DEVICE.type == "cuda"
-    scaler = GradScaler() if use_amp else None
+    scaler = torch.amp.GradScaler("cuda") if use_amp else None
 
     # Resume from checkpoint
     start_iter = 0
@@ -420,7 +419,7 @@ def train(args):
 
         # ── Forward + Backward ──
         if use_amp and scaler is not None:
-            with autocast(device_type='cuda'):
+            with torch.amp.autocast(device_type="cuda"):
                 outputs = model(pixel_values=pixel_values)
                 loss = model.compute_loss(outputs["logits"], labels, pos_weight=pos_weight)
 
